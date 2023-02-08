@@ -1,26 +1,34 @@
 #!/usr/bin/python3
-""" This module gathers data from an API """
-
+""" Script that uses JSONPlaceholder API to get information about employee """
 import csv
-import json
 import requests
 import sys
 
 
-def get_user_todo_list():
-    employee_id = int(sys.argv[1])
-    url1 = 'https://jsonplaceholder.typicode.com/users/%s' % employee_id
-    url2 = '%s/todos' % url1
-    todo_list = requests.get(url2).json()
-    user = requests.get(url1).json()
-    path = "{}.csv".format(employee_id)
+if __name__ == "__main__":
+    url = 'https://jsonplaceholder.typicode.com/'
 
-    with open(path, 'w', encoding='utf-8') as f:
-        writer = csv.writer(f, delimiter=',', quoting=csv.QUOTE_ALL)
-        for todo in todo_list:
-            writer.writerow([employee_id, user.get('username'),
-                            todo.get('completed'), todo.get('title')])
+    userid = sys.argv[1]
+    user = '{}users/{}'.format(url, userid)
+    res = requests.get(user)
+    json_o = res.json()
+    name = json_o.get('username')
 
+    todos = '{}todos?userId={}'.format(url, userid)
+    res = requests.get(todos)
+    tasks = res.json()
+    l_task = []
+    for task in tasks:
+        l_task.append([userid,
+                       name,
+                       task.get('completed'),
+                       task.get('title')])
 
-if __name__ == '__main__':
-    get_user_todo_list()
+    filename = '{}.csv'.format(userid)
+    with open(filename, mode='w') as employee_file:
+        employee_writer = csv.writer(employee_file,
+                                     delimiter=',',
+                                     quotechar='"',
+                                     quoting=csv.QUOTE_ALL)
+        for task in l_task:
+            employee_writer.writerow(task)
